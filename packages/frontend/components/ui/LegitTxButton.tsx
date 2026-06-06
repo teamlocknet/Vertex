@@ -1,22 +1,67 @@
 'use client';
-import { useState } from 'react';
-import type { PowStatus } from '@/lib/types';
+import { useState }                        from 'react';
+import { ethers }                          from 'ethers';
+import type { PowStatus as BasePowStatus } from '@/lib/types';
+
+type PowStatus = BasePowStatus | 'error';
+
+const MICROPY_ABI = [
+  'function processMicropayment(uint256 channelId, uint256 clientTimestamp, uint256 noncePoW) external payable',
+];
+
+const DEMO_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 export default function LegitTxButton() {
-  const [status, setStatus] = useState<PowStatus>('idle');
+  const [status,   setStatus]   = useState<PowStatus>('idle');
+  const [txHash,   setTxHash]   = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (status !== 'idle') return;
     setStatus('calculating');
-    setTimeout(() => {
+
+    // ── 1. Fetch deployed addresses ──────────────────────────────────────────
+    let deployments: { VertexExecutor: string };
+    try {
+      const res = await fetch('http://localhost:3001/deployments');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      deployments = await res.json();
+    } catch {
+      setErrorMsg('Run deploy script first');
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 4000);
+      return;
+    }
+
+    // ── 2. Provider → signer → contract → send ───────────────────────────────
+    try {
+      const provider = new ethers.JsonRpcProvider('http://localhost:8545');
+      const wallet   = new ethers.Wallet(DEMO_KEY, provider);
+      const contract = new ethers.Contract(deployments.VertexExecutor, MICROPY_ABI, wallet);
+
+      const tx = await contract.processMicropayment(
+        1n,
+        BigInt(Math.floor(Date.now() / 1000)),
+        0n,
+        { value: ethers.parseEther('0.001') },
+      );
+      await tx.wait(1);
+
+      setTxHash(tx.hash);
       setStatus('success');
-      setTimeout(() => setStatus('idle'), 3000);
-    }, 1500);
+      setTimeout(() => setStatus('idle'), 5000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(msg.slice(0, 60));
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 4000);
+    }
   };
 
   const isIdle = status === 'idle';
   const isCalc = status === 'calculating';
   const isOk   = status === 'success';
+  const isErr  = status === 'error';
 
   return (
     <button
@@ -74,8 +119,12 @@ export default function LegitTxButton() {
       {isOk && (
         <span className="flex items-center justify-center gap-2">
           <span className="text-emerald-400 text-base">✓</span>
-          Tx Confirmada — Bloque Incluido
+          {'Tx: ' + txHash.slice(0, 12) + '...'}
         </span>
+      )}
+
+      {isErr && (
+        <span style={{ color: '#f87171' }}>{errorMsg}</span>
       )}
 
       {isIdle && (

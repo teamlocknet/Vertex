@@ -1,8 +1,27 @@
-# Vertex — Motor de Ejecución Paralela por Canales
+# Vertex — Parallel Execution Engine for Monad
 
-Demostración empírica del problema de colisiones OCC (Optimistic Concurrency Control) en Monad. Compara en tiempo real un contrato monolítico saturable contra el ecosistema **FabricVM** con particionado de slots disjuntos por canales.
+> **Hackatón Monad Blitz 2026**
 
-**Hackatón Monad Blitz 2026**
+## The problem
+
+Monad executes transactions optimistically in parallel. When two transactions
+in the same block write to the same storage slot, Monad detects the conflict
+and re-executes the second one sequentially — killing the parallelism benefit.
+A monolithic contract with flat storage (`mapping(address => uint256) balances`)
+causes this on every high-concurrency block.
+
+## The solution
+
+Vertex proves empirically that partitioning storage into disjoint channel slots
+(`mapping(channelId => mapping(address => Partition))`) ensures every transaction
+touches a unique slot. Monad's scheduler never detects a conflict.
+Result: **zero OCC collisions, full parallel throughput.**
+
+## Live demo
+
+The dashboard shows two contracts under identical 1,200-transaction load:
+- **Left (red):** MonolithDemo — flat storage, sequential re-execution, collisions visible
+- **Right (green):** VertexCore — disjoint channels, zero re-execution, full parallelism
 
 ---
 
