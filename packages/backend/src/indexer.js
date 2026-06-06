@@ -32,16 +32,25 @@ const EXECUTOR_ABI = [
 // ── In-memory metrics ──────────────────────────────────────────────────────────
 
 const metrics = {
-  monolith: { timestamps: [], latencies: [], errors: 0 },
-  vertex:   { timestamps: [], latencies: [], errors: 0 },
+  monolith: { timestamps: [], latencies: [], errorTs: [] },
+  vertex:   { timestamps: [], latencies: [], errorTs: [] },
 };
 
-function rollingTps(timestamps) {
-  const cutoff = Date.now() - 1_000;
+function rollingCount(arr, windowMs) {
+  const cutoff = Date.now() - windowMs;
   let i = 0;
-  while (i < timestamps.length && timestamps[i] < cutoff) i++;
-  if (i) timestamps.splice(0, i);
-  return timestamps.length;
+  while (i < arr.length && arr[i] < cutoff) i++;
+  if (i) arr.splice(0, i);
+  return arr.length;
+}
+
+function rollingTps(timestamps) {
+  const WINDOW_MS = 5_000;
+  return Math.round(rollingCount(timestamps, WINDOW_MS) / (WINDOW_MS / 1_000));
+}
+
+function rollingErrors(errorTs) {
+  return rollingCount(errorTs, 30_000);
 }
 
 function drainAvgLatency(latencies) {
@@ -73,8 +82,8 @@ function broadcast(payload) {
 // ── Pulse — every 500 ms push snapshot to all WS clients ──────────────────────
 
 setInterval(() => {
-  broadcast({ target: 'monolith', tps: rollingTps(metrics.monolith.timestamps), errors: metrics.monolith.errors, latencyMs: drainAvgLatency(metrics.monolith.latencies) });
-  broadcast({ target: 'fabric',   tps: rollingTps(metrics.vertex.timestamps),   errors: metrics.vertex.errors,   latencyMs: drainAvgLatency(metrics.vertex.latencies)   });
+  broadcast({ target: 'monolith', tps: rollingTps(metrics.monolith.timestamps), errors: rollingErrors(metrics.monolith.errorTs), latencyMs: drainAvgLatency(metrics.monolith.latencies) });
+  broadcast({ target: 'fabric',   tps: rollingTps(metrics.vertex.timestamps),   errors: rollingErrors(metrics.vertex.errorTs),   latencyMs: drainAvgLatency(metrics.vertex.latencies)   });
 }, 500);
 
 // ── Connectivity pre-check ─────────────────────────────────────────────────────
@@ -115,34 +124,15 @@ async function connectToAnvil(addresses) {
     provider = new ethers.WebSocketProvider(ANVIL_WS);
     await provider.getBlockNumber();
 
-    // ── Monolith events ────────────────────────────────────────────────────
-    const monolith = new ethers.Contract(addresses.MonolithDemo, MONOLITH_ABI, provider);
+    // ── Interface decoders for log parsing ────────────────────────────────
+    const monolithIface = new ethers.Interface(MONOLITH_ABI);
+    const executorIface = new ethers.Interface(EXECUTOR_ABI);
 
-    monolith.on('StateUpdated', (_sender, _bal, clientTimestamp) => {
-      const now = Date.now();
-      metrics.monolith.timestamps.push(now);
-      const ts = Number(clientTimestamp);
-      if (ts > 1_000_000_000 && ts < 9_999_999_999) {
-        const lat = now - ts * 1_000;
-        if (lat >= 0 && lat < 30_000) metrics.monolith.latencies.push(lat);
-      }
-    });
-
-    // ── Vertex executor events ─────────────────────────────────────────────
-    const executor = new ethers.Contract(addresses.VertexExecutor, EXECUTOR_ABI, provider);
-
-    executor.on('BatchPush', (_channelId, opCount, _root, timestamp) => {
-      const now   = Date.now();
-      const count = Number(opCount);
-      for (let i = 0; i < count; i++) metrics.vertex.timestamps.push(now);
-      const lat = now - Number(timestamp) * 1_000;
-      if (lat >= 0 && lat < 30_000) metrics.vertex.latencies.push(lat);
-    });
-
-    // ── Error tracking ────────────────────────────────────────────────────
     const monolithAddr = addresses.MonolithDemo.toLowerCase();
     const executorAddr = addresses.VertexExecutor.toLowerCase();
 
+    // ── Block scanner — TPS + latency + error counting ─────────────────────
+    // More reliable than contract.on() over WebSocket in ethers v6.
     provider.on('block', async (blockNumber) => {
       try {
         const block = await provider.getBlock(blockNumber, true);
@@ -153,9 +143,44 @@ async function connectToAnvil(addresses) {
           if (to !== monolithAddr && to !== executorAddr) continue;
           try {
             const receipt = await provider.getTransactionReceipt(tx.hash);
+            const now = Date.now();
+
             if (receipt?.status === 0) {
-              if (to === monolithAddr) metrics.monolith.errors++;
-              else                    metrics.vertex.errors++;
+              if (to === monolithAddr) metrics.monolith.errorTs.push(now);
+              else                    metrics.vertex.errorTs.push(now);
+
+            } else if (receipt?.status === 1) {
+              if (to === monolithAddr) {
+                metrics.monolith.timestamps.push(now);
+                // Extract clientTimestamp from StateUpdated log for latency
+                for (const log of receipt.logs) {
+                  try {
+                    const parsed = monolithIface.parseLog(log);
+                    if (parsed?.name === 'StateUpdated') {
+                      const ts = Number(parsed.args[2]); // clientTimestamp
+                      if (ts > 1_000_000_000 && ts < 9_999_999_999) {
+                        const lat = now - ts * 1_000;
+                        if (lat >= 0 && lat < 30_000) metrics.monolith.latencies.push(lat);
+                      }
+                    }
+                  } catch { /* not this event */ }
+                }
+
+              } else {
+                // VertexExecutor: BatchPush reports opCount operations
+                for (const log of receipt.logs) {
+                  try {
+                    const parsed = executorIface.parseLog(log);
+                    if (parsed?.name === 'BatchPush') {
+                      const count = Number(parsed.args[1]); // opCount
+                      for (let i = 0; i < count; i++) metrics.vertex.timestamps.push(now);
+                      const ts = Number(parsed.args[3]); // timestamp (block.timestamp)
+                      const lat = now - ts * 1_000;
+                      if (lat >= 0 && lat < 30_000) metrics.vertex.latencies.push(lat);
+                    }
+                  } catch { /* not this event */ }
+                }
+              }
             }
           } catch { /* receipt temporarily unavailable */ }
         }

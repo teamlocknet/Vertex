@@ -41,6 +41,9 @@ contract VertexExecutor is ReentrancyGuardTransient {
 
     address     public immutable owner;
 
+    // true when constructor received difficulty_ > 0; false means PoW permanently off
+    bool        public immutable shieldActive;
+
     // ── Mutable state ─────────────────────────────────────────────────────────
 
     bool public paused;
@@ -120,7 +123,8 @@ contract VertexExecutor is ReentrancyGuardTransient {
             lastTargetBlock:    uint64(block.number),
             currentDifficulty:  uint64(difficulty_)
         });
-        owner   = msg.sender;
+        owner        = msg.sender;
+        shieldActive = difficulty_ > 0;
     }
 
     // ── Modifiers ─────────────────────────────────────────────────────────────
@@ -161,6 +165,8 @@ contract VertexExecutor is ReentrancyGuardTransient {
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     function _updateDifficulty() internal returns (uint256 cachedDiff) {
+        if (!shieldActive) return 0;
+
         DiffState memory d = _diff;
         cachedDiff = d.currentDifficulty;
 

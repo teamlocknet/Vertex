@@ -15,7 +15,7 @@ contract Deploy is Script {
     // Gas budget per VertexCore operation (deposit / withdraw).
     uint256 constant GAS_PER_OP  = 50_000;
     // Channels pre-authorized for the attack bots.
-    uint256 constant CHANNELS    = 5;
+    uint256 constant CHANNELS    = 10;
 
     function run() external {
         uint256 deployerKey = vm.envOr(
@@ -51,11 +51,9 @@ contract Deploy is Script {
         MonolithDemo monolith = new MonolithDemo();
 
         // ── Pre-authorize Anvil default wallets on all demo channels ─────────────
-        aegis.batchAuthorize(_anvilBots(), 1);
-        aegis.batchAuthorize(_anvilBots(), 2);
-        aegis.batchAuthorize(_anvilBots(), 3);
-        aegis.batchAuthorize(_anvilBots(), 4);
-        aegis.batchAuthorize(_anvilBots(), 5);
+        for (uint256 ch = 1; ch <= CHANNELS; ch++) {
+            aegis.batchAuthorize(_anvilBots(), ch);
+        }
 
         vm.stopBroadcast();
 

@@ -10,7 +10,7 @@ const RPC_URL          = 'http://127.0.0.1:8545';
 const DEFAULT_WAVES    = 10;
 const DEFAULT_BATCH    = 120;  // 10 wallets × 12 txs per wave
 const INTER_WAVE_DELAY = 200;  // ms — RAM fuse between waves
-const MONOLITH_GAS     = 80_000n;
+const MONOLITH_GAS     = 150_000n;
 
 // ─── ANVIL DEFAULT KEYS (well-known dev accounts, do NOT use in production) ──
 
