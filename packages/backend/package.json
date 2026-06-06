@@ -1,0 +1,19 @@
+{
+  "name": "@vertex/backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/indexer.js",
+    "server": "node src/server.js",
+    "agent": "node src/agent.js"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0",
+    "express": "^4.19.2",
+    "ws": "^8.17.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
