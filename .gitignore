@@ -1,0 +1,41 @@
+# Dependencias globales
+node_modules
+.pnpm-debug.log
+
+# Archivos de entorno y seguridad
+.env
+.env.local
+.env.production
+*.pem
+private_key
+secret
+mnemonic
+
+# Compilación de Contratos (Foundry)
+packages/contracts/out
+packages/contracts/cache
+packages/contracts/broadcast
+packages/contracts/artifacts
+packages/contracts/deployments/
+
+# Direcciones generadas por deploy script (específicas por máquina)
+packages/backend/config/deployments.json
+
+# Compilación de Backend
+packages/backend/dist
+packages/backend/.audit_alert.log
+
+# Compilación de Frontend (Next.js)
+packages/frontend/.next
+packages/frontend/out
+packages/frontend/build
+
+# Sistema Operativo y Editores
+.DS_Store
+.vscode
+.cursor
+.idea
+Thumbs.db
+*.swp
+*~
+.antigravity
