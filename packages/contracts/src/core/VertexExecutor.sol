@@ -165,8 +165,6 @@ contract VertexExecutor is ReentrancyGuardTransient {
     // ── Internal helpers ──────────────────────────────────────────────────────
 
     function _updateDifficulty() internal returns (uint256 cachedDiff) {
-        if (!shieldActive) return 0;
-
         DiffState memory d = _diff;
         cachedDiff = d.currentDifficulty;
 
@@ -185,9 +183,14 @@ contract VertexExecutor is ReentrancyGuardTransient {
             d.lastTargetBlock    = uint64(block.number);
             d.txCounterThisBlock = 0;
             d.currentDifficulty  = newDiff;
+            cachedDiff           = newDiff;
         }
         unchecked { d.txCounterThisBlock += 1; }
         _diff = d;
+
+        // Shield permanently off — counter tracking still runs for observability,
+        // but returning 0 tells _applyShieldPoW to skip the PoW check entirely.
+        if (!shieldActive) return 0;
     }
 
     function _applyShieldPoW(uint256 difficulty_, uint256 noncePoW, uint256 channelId) internal view {
