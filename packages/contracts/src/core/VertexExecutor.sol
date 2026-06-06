@@ -203,6 +203,10 @@ contract VertexExecutor is ReentrancyGuardTransient {
             case 0 {
                 shiftAmt := sub(256, mul(difficulty_, 4))
             }
+            default {
+                // difficulty > 63 → cap at 63 to avoid shr(0,x) always-revert trap
+                shiftAmt := sub(256, mul(63, 4))
+            }
             if shr(shiftAmt, powHash) {
                 let ptr := mload(0x40)
                 mstore(ptr, 0x8437022e00000000000000000000000000000000000000000000000000000000)
