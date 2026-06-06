@@ -2,89 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+:root {
+  --bb-black: #000000;
+  --bb-bg: #030a03;
+  --bb-bg2: #060e06;
+  --bb-panel: #050d05;
+  --bb-border: #1a3a1a;
+  --bb-border2: #0f2a0f;
+  --bb-green: #00ff41;
+  --bb-green2: #00cc33;
+  --bb-green3: #009922;
+  --bb-green-dim: #005515;
+  --bb-green-muted: #003310;
+  --bb-amber: #ffb700;
+  --bb-amber2: #cc9200;
+  --bb-red: #ff2222;
+  --bb-red2: #cc1111;
+  --bb-red-dim: #550000;
+  --bb-white: #d4ffd4;
+  --bb-gray: #446644;
+  --bb-font: var(--font-ibm, 'IBM Plex Mono', 'Courier New', monospace);
 }
 
-html,
-body {
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
   background: #000;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--bb-font);
+  color: var(--bb-green);
+  overflow: hidden;
+  cursor: crosshair;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-/* ─── Glitch para el Monolito ─── */
-@keyframes glitch {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-3px, 1px);
-  }
-  20% {
-    transform: translate(3px, -1px);
-  }
-  30% {
-    transform: translate(-1px, 3px);
-  }
-  40% {
-    transform: translate(1px, -3px);
-  }
-  50% {
-    transform: translate(-2px, 0);
-  }
-  60% {
-    transform: translate(2px, 1px);
-  }
-  70% {
-    transform: translate(-1px, -1px);
-  }
-  80% {
-    transform: translate(1px, 2px);
-  }
-  90% {
-    transform: translate(-2px, -2px);
-  }
-}
-
-/* ─── Scanline retro ─── */
-@keyframes scanline {
-  0% {
-    transform: translateY(-10%);
-  }
-  100% {
-    transform: translateY(110vh);
-  }
-}
-
-/* ─── Pulso neon suave ─── */
-@keyframes neonFade {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.scanline-overlay::after {
+/* CRT scanline overlay */
+body::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: repeating-linear-gradient(
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.05) 2px,
-    rgba(0, 0, 0, 0.05) 4px
+    rgba(0, 255, 65, 0.015) 2px,
+    rgba(0, 255, 65, 0.015) 4px
   );
   pointer-events: none;
-  z-index: 50;
+  z-index: 9999;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bb-bg); }
+::-webkit-scrollbar-thumb { background: var(--bb-green-dim); }
+
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  10% { transform: translate(-3px, 1px); }
+  20% { transform: translate(3px, -1px); }
+  30% { transform: translate(-1px, 3px); }
+  40% { transform: translate(1px, -3px); }
+  50% { transform: translate(-2px, 0); }
+  60% { transform: translate(2px, 1px); }
+  70% { transform: translate(-1px, -1px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(-2px, -2px); }
+}
+
+@keyframes neonFade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }

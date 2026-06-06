@@ -20,7 +20,6 @@ export default function LegitTxButton() {
     if (status !== 'idle') return;
     setStatus('calculating');
 
-    // ── 1. Fetch deployed addresses ──────────────────────────────────────────
     let deployments: { VertexExecutor: string };
     try {
       const res = await fetch('http://localhost:3001/deployments');
@@ -33,7 +32,6 @@ export default function LegitTxButton() {
       return;
     }
 
-    // ── 2. Provider → signer → contract → send ───────────────────────────────
     try {
       const provider = new ethers.JsonRpcProvider('http://localhost:8545');
       const wallet   = new ethers.Wallet(DEMO_KEY, provider);
@@ -58,7 +56,6 @@ export default function LegitTxButton() {
     }
   };
 
-  const isIdle = status === 'idle';
   const isCalc = status === 'calculating';
   const isOk   = status === 'success';
   const isErr  = status === 'error';
@@ -66,76 +63,27 @@ export default function LegitTxButton() {
   return (
     <button
       onClick={handleClick}
-      disabled={!isIdle}
-      className="relative w-full px-4 py-3 rounded-lg font-mono text-sm font-semibold
-                 transition-all duration-300 overflow-hidden
-                 disabled:cursor-not-allowed"
+      disabled={status !== 'idle'}
       style={{
-        color: isOk ? '#34d399' : '#67e8f9',
-        background: isOk
-          ? 'rgba(6,78,59,0.55)'
-          : isCalc
-          ? 'rgba(7,89,133,0.4)'
-          : 'rgba(8,145,178,0.15)',
-        border: isOk
-          ? '1px solid rgba(52,211,153,0.8)'
-          : '1px solid rgba(0,255,204,0.45)',
-        boxShadow: isOk
-          ? '0 0 20px rgba(52,211,153,0.5), 0 0 40px rgba(52,211,153,0.2)'
-          : isCalc
-          ? '0 0 14px rgba(34,211,238,0.35)'
-          : '0 0 8px rgba(0,255,204,0.18)',
-        transform: isIdle ? undefined : 'scale(0.99)',
+        background: 'transparent',
+        border: `1px solid ${isOk ? 'var(--bb-green)' : isErr ? 'var(--bb-red)' : 'var(--bb-green3)'}`,
+        color: isOk ? 'var(--bb-white)' : isErr ? 'var(--bb-red)' : 'var(--bb-green)',
+        fontFamily: 'var(--bb-font)',
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.18em',
+        padding: '10px 20px',
+        cursor: status === 'idle' ? 'pointer' : 'not-allowed',
+        textTransform: 'uppercase',
+        width: '100%',
+        boxShadow: isOk ? '0 0 12px rgba(0,255,65,0.3)' : isErr ? '0 0 8px rgba(255,34,34,0.3)' : 'none',
+        transition: 'all 0.1s',
       }}
     >
-      {isIdle && <span>⚡ Enviar Tx Legítima (Juez)</span>}
-
-      {isCalc && (
-        <span className="flex items-center justify-center gap-2">
-          <svg
-            className="animate-spin h-4 w-4 flex-shrink-0"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          Calculando Proof of Work en Yul...
-        </span>
-      )}
-
-      {isOk && (
-        <span className="flex items-center justify-center gap-2">
-          <span className="text-emerald-400 text-base">✓</span>
-          {'Tx: ' + txHash.slice(0, 12) + '...'}
-        </span>
-      )}
-
-      {isErr && (
-        <span style={{ color: '#f87171' }}>{errorMsg}</span>
-      )}
-
-      {isIdle && (
-        <span
-          className="absolute inset-0 rounded-lg pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent 0%, rgba(0,255,204,0.07) 50%, transparent 100%)',
-          }}
-        />
-      )}
+      {isOk   ? `✓ TX CONFIRMADA — ${txHash.slice(0, 14)}...`  :
+       isCalc ? 'CALCULANDO PROOF OF WORK YUL...'              :
+       isErr  ? `✗ ERROR: ${errorMsg}`                         :
+                '⚡ ENVIAR TX LEGÍTIMA (JUEZ)'}
     </button>
   );
 }
