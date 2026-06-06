@@ -1,0 +1,12 @@
+{
+  "name": "@vertex/attacker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "monolith": "node src/attack.js --target monolith",
+    "vertex": "node src/attack.js --target vertex"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  }
+}
