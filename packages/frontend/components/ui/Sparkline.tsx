@@ -1,5 +1,5 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 interface Props {
   value: number;
@@ -8,11 +8,27 @@ interface Props {
 }
 
 export default function Sparkline({ value, maxVal, color }: Props) {
+  const [mounted, setMounted] = useState(false);
   const histRef = useRef<number[]>([]);
-  histRef.current = [...histRef.current, value].slice(-30);
-  const data = histRef.current;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    histRef.current = [...histRef.current, value].slice(-30);
+  }, [value]);
+
   const W = 80, H = 20;
+
+  // Always render empty SVG on server and during hydration — guarantees
+  // server HTML matches the first client render. The polyline only appears
+  // after mount, which is past the hydration boundary.
+  if (!mounted) return <svg viewBox={`0 0 ${W} ${H}`} style={{ flex: 1, height: H }} />;
+
+  const data = histRef.current;
   if (data.length < 2) return <svg viewBox={`0 0 ${W} ${H}`} style={{ flex: 1, height: H }} />;
+
   const pts = data
     .map((v, i) => `${(i / (data.length - 1)) * W},${H - Math.min(v / Math.max(maxVal, 1), 1) * H}`)
     .join(' ');
