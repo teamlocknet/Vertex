@@ -282,6 +282,6 @@ contract VertexExecutor is ReentrancyGuardTransient {
 
         pulse.record(channelId, amt);
         bytes32 payloadHash = keccak256(abi.encodePacked(msg.sender, clientTimestamp));
-        emit BatchPush(channelId, 1, payloadHash, uint64(block.timestamp));
+        emit BatchPush(channelId, 1, payloadHash, uint64(clientTimestamp));
     }
 }

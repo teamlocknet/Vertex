@@ -50,7 +50,7 @@ function rollingTps(timestamps) {
 }
 
 function rollingErrors(errorTs) {
-  return rollingCount(errorTs, 30_000);
+  return rollingCount(errorTs, 60_000);
 }
 
 function drainAvgLatency(latencies) {

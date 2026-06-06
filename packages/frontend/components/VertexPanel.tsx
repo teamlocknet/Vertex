@@ -79,15 +79,16 @@ export default function VertexPanel({ state }: Props) {
     }
   }, [state.tps]);
 
-  const activeChannels = Math.max(1, Math.ceil(state.tps / 60));
+  const activeChannels = state.tps > 0 ? Math.min(10, Math.max(1, Math.ceil(state.tps / 12))) : 0;
   const tpsBarW = Math.min(100, (state.tps       / 2000) * 100);
-  const errBarW = Math.min(100, (state.errors    /  200) * 100);
-  const latBarW = Math.min(100, (state.latencyMs /   50) * 100);
+  const errBarW = Math.min(100, (state.errors    /  400) * 100);
+  const latBarW = Math.min(100, (state.latencyMs / 2000) * 100);
   const colRate = ((state.errors / Math.max(state.tps, 1)) * 100).toFixed(3);
 
+  const chanLabel = activeChannels > 0 ? `CH-01..${String(activeChannels).padStart(2, '0')} ✓` : 'ESPERANDO TX...';
   const STATUS_ROWS = [
-    ['CANALES ACTIVOS',    `CH-01..${String(activeChannels).padStart(2, '0')} ✓`, 'ok'],
-    ['SHIELD POW',         'ACTIVO (YUL INLINE)',                                 'ok'],
+    ['CANALES ACTIVOS',    chanLabel,                                              'ok'],
+    ['SHIELD POW',         'INACTIVO (DEMO MODE)',                                 'gray'],
     ['AEGISNET',           '● PERMISOS OK',                                       'ok'],
     ['EJECUCIÓN PARALELA', 'uint128 balance + uint64 nonce',                      'ok'],
     ['TX TARGET',          'CANCUN / MONAD',                                      'ok'],
@@ -127,7 +128,7 @@ export default function VertexPanel({ state }: Props) {
 
         {/* Errores */}
         <div style={{ padding: '10px 14px', borderRight: '1px solid var(--bb-border2)', background: 'rgba(0,255,65,0.04)', boxShadow: '0 0 8px rgba(0,255,65,0.1) inset' }}>
-          <div style={{ fontSize: 9, color: 'var(--bb-gray)', letterSpacing: '0.15em', fontWeight: 600, marginBottom: 4 }}>ERRORES OCC</div>
+          <div style={{ fontSize: 9, color: 'var(--bb-gray)', letterSpacing: '0.15em', fontWeight: 600, marginBottom: 4 }}>TX ABORTADAS</div>
           <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, color: 'var(--bb-red)', textShadow: '0 0 16px rgba(255,34,34,0.6)' }}>
             {state.errors}<span style={{ fontSize: 10, fontWeight: 400, color: 'var(--bb-gray)', marginLeft: 3 }}>err</span>
           </div>
@@ -135,7 +136,7 @@ export default function VertexPanel({ state }: Props) {
             <div style={{ height: '100%', width: `${errBarW}%`, background: 'var(--bb-amber)', position: 'absolute', left: 0, top: 0, transition: 'width 0.5s' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, color: 'var(--bb-amber)', marginTop: 4 }}>
-            <span>RESOLVIENDO</span><Sparkline value={state.errors} maxVal={200} color="#cc9200" />
+            <span>RESOLVIENDO</span><Sparkline value={state.errors} maxVal={400} color="#cc9200" />
           </div>
         </div>
 
@@ -149,7 +150,7 @@ export default function VertexPanel({ state }: Props) {
             <div style={{ height: '100%', width: `${latBarW}%`, background: 'var(--bb-green)', position: 'absolute', left: 0, top: 0, transition: 'width 0.5s' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, color: 'var(--bb-gray)', marginTop: 4 }}>
-            <span>P99</span><Sparkline value={state.latencyMs} maxVal={50} color="#00cc33" />
+            <span>P99</span><Sparkline value={state.latencyMs} maxVal={2000} color="#00cc33" />
           </div>
         </div>
       </div>
@@ -159,10 +160,10 @@ export default function VertexPanel({ state }: Props) {
         ◆ ESTADO CANALES Y SHIELDS
       </div>
       <div style={{ padding: '8px 14px 6px', borderBottom: '1px solid var(--bb-border)', flexShrink: 0 }}>
-        {STATUS_ROWS.map(([key, val]) => (
+        {STATUS_ROWS.map(([key, val, cls]) => (
           <div key={String(key)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--bb-border2)', fontSize: 10 }}>
             <span style={{ color: 'var(--bb-gray)', letterSpacing: '0.1em' }}>{String(key)}</span>
-            <span style={{ color: 'var(--bb-green)' }}>{String(val)}</span>
+            <span style={{ color: cls === 'gray' ? 'var(--bb-gray)' : 'var(--bb-green)' }}>{String(val)}</span>
           </div>
         ))}
       </div>
@@ -194,7 +195,7 @@ export default function VertexPanel({ state }: Props) {
           <strong style={{ color: 'var(--bb-green)' }}>{colRate}%</strong>
         </div>
         <div style={{ fontSize: 9, color: 'var(--bb-green2)', letterSpacing: '0.1em' }}>
-          SHIELD: <span style={{ color: 'var(--bb-gray)' }}>ACTIVO</span>
+          SHIELD: <span style={{ color: 'var(--bb-gray)' }}>INACTIVO</span>
         </div>
       </div>
     </div>

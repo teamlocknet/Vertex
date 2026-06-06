@@ -64,8 +64,9 @@ function loadAddresses() {
 
 // ─── WALLET POOL ──────────────────────────────────────────────────────────────
 
-function buildWalletPool(provider) {
-  return ANVIL_KEYS.map(k => new ethers.Wallet(k, provider));
+function buildWalletPool(provider, target) {
+  const keys = target === 'monolith' ? ANVIL_KEYS.slice(0, 5) : ANVIL_KEYS.slice(5, 10);
+  return keys.map(k => new ethers.Wallet(k, provider));
 }
 
 // ─── NONCE SNAPSHOT ───────────────────────────────────────────────────────────
@@ -147,7 +148,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function orchestrate(target, waveCount, batchSize) {
   const provider     = new ethers.JsonRpcProvider(RPC_URL);
-  const wallets      = buildWalletPool(provider);
+  const wallets      = buildWalletPool(provider, target);
   const addresses    = loadAddresses();
   const txsPerWallet = Math.floor(batchSize / wallets.length);
   const waveBatch    = txsPerWallet * wallets.length;

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "demo": "bash scripts/demo.sh"
+    "demo": "bash scripts/demo.sh",
+    "demo:setup": "cd packages/contracts && forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --broadcast"
   },
   "keywords": [],
   "author": "",

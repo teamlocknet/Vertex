@@ -22,7 +22,7 @@ export default function LegitTxButton() {
 
     let deployments: { VertexExecutor: string };
     try {
-      const res = await fetch('http://localhost:3001/deployments');
+      const res = await fetch('/api/deployments');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       deployments = await res.json();
     } catch {
@@ -81,7 +81,7 @@ export default function LegitTxButton() {
       }}
     >
       {isOk   ? `✓ TX CONFIRMADA — ${txHash.slice(0, 14)}...`  :
-       isCalc ? 'CALCULANDO PROOF OF WORK YUL...'              :
+       isCalc ? 'ENVIANDO TX...'                               :
        isErr  ? `✗ ERROR: ${errorMsg}`                         :
                 '⚡ ENVIAR TX LEGÍTIMA (JUEZ)'}
     </button>

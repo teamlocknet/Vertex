@@ -57,8 +57,8 @@ export default function MonolithPanel({ state }: Props) {
 
   const colRate  = ((state.errors / Math.max(state.tps, 1)) * 100).toFixed(2);
   const tpsBarW  = Math.min(100, (state.tps       / 500) * 100);
-  const errBarW  = Math.min(100, (state.errors    / 200) * 100);
-  const latBarW  = Math.min(100, (state.latencyMs / 500) * 100);
+  const errBarW  = Math.min(100, (state.errors    / 400) * 100);
+  const latBarW  = Math.min(100, (state.latencyMs / 2000) * 100);
 
   const STATUS_ROWS = [
     ['MODO EJECUCIÓN',    'SECUENCIAL / BLOQUEANTE',                     'warn'],
@@ -93,7 +93,7 @@ export default function MonolithPanel({ state }: Props) {
         </KpiCell>
         <KpiCell label="ERRORES OCC"  value={state.errors}    unit="err"  color="var(--bb-red)"   barColor="var(--bb-red)"   barW={errBarW} bgAlert>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, marginTop: 4 }}>
-            <span style={{ color: 'var(--bb-red2)' }}>CRÍTICO</span><Sparkline value={state.errors} maxVal={200} color="#cc1111" />
+            <span style={{ color: 'var(--bb-red2)' }}>CRÍTICO</span><Sparkline value={state.errors} maxVal={400} color="#cc1111" />
           </div>
         </KpiCell>
         <KpiCell label="LATENCIA P50" value={state.latencyMs} unit="ms"   color="var(--bb-amber)" barColor="var(--bb-amber)" barW={latBarW} bgAlert={false} last>
