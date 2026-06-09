@@ -161,3 +161,16 @@ node packages/attacker/src/attack.js --target vertex --waves=5 --batch=60
 | Agente IA | Ollama `deepseek-coder:7b` + salvavidas matemático |
 | Frontend | Next.js 14.2.23, React 18.3.1, Three.js ^0.177.0, R3F ^8.17.10 |
 | Gestor de paquetes | pnpm (monorepo workspace) |
+
+## Deployed Contracts (Monad Testnet - Chain 10143)
+
+| Contract | Description | Address |
+|----------|-------------|---------|
+| MonolithDemo | Contrato de comparación | [0x82Ad35989e44B4eC920c9E902E1C058108a57436](https://testnet.monadexplorer.com/address/0x82Ad35989e44B4eC920c9E902E1C058108a57436) |
+| VertexExecutor | Orquestador + Shield PoW | [0xbCf9e3B448f85C1368FbAB54F8B63668d774014B](https://testnet.monadexplorer.com/address/0xbCf9e3B448f85C1368FbAB54F8B63668d774014B) |
+| AegisNet | Control de acceso por canal | [0xa1F5bB7a2dabc7967CF6d902C2eafBFE314E01fc](https://testnet.monadexplorer.com/address/0xa1F5bB7a2dabc7967CF6d902C2eafBFE314E01fc) |
+| GasAuditor | Auditoría de gas por lote | [0x896ab0Fc78e30f16495332b51601e814ee66eBc5](https://testnet.monadexplorer.com/address/0x896ab0Fc78e30f16495332b51601e814ee66eBc5) |
+| PulseState | Telemetría on-chain | [0x500c7dB7affEC9e034bF476Be751B7Dccc1058F1](https://testnet.monadexplorer.com/address/0x500c7dB7affEC9e034bF476Be751B7Dccc1058F1) |
+| VertexCore | Storage disjunto por canales | [0x749735A33Ad638B093662e76Bf27640468aCB12c](https://testnet.monadexplorer.com/address/0x749735A33Ad638B093662e76Bf27640468aCB12c) |
+
+Deployer wallet: `0xDD1627107Bb5783EEE9DFBc4Abd5611220736F0A`
